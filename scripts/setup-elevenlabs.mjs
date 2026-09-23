@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Creates the ElevenLabs Agents resources for the speed-to-lead demo:
-// two webhook tools (score_lead, book_consultation) and the "Maya" agent with
+// two webhook tools (score_lead, book_consultation) and the "Joy" agent with
 // transfer_to_number + end_call system tools and post-call data collection.
 //
 // Usage:
@@ -10,7 +10,7 @@
 //
 // Env:
 //   ELEVENLABS_API_KEY  required (unless --dry-run)
-//   TRANSFER_NUMBER     optional: the human rep's phone, E.164. Without it Maya has no live transfer
+//   TRANSFER_NUMBER     optional: the human rep's phone, E.164. Without it Joy has no live transfer
 //                       (she promises a callback and the team is alerted instead).
 //   N8N_BASE_URL        n8n instance root, no trailing slash
 //   VOICE_ID            optional ElevenLabs voice id
@@ -41,7 +41,7 @@ if (!dryRun) {
 // message), else by caller number.
 const leadRef = { type: 'string', description: 'Enquiry reference if the person mentioned one, e.g. "Lmue5fi0ixy5st" from "ref Lmue5fi0ixy5st". Empty if none. Never ask for it.' };
 const conversationId = { type: 'string', dynamic_variable: 'system__conversation_id' };
-// The caller's number/WhatsApp id: how n8n finds the lead when the person called Maya themselves.
+// The caller's number/WhatsApp id: how n8n finds the lead when the person called Joy themselves.
 const callerId = { type: 'string', dynamic_variable: 'system__caller_id' };
 
 const scoreLeadTool = {
@@ -110,11 +110,11 @@ const bookTool = {
 const prompt = readFileSync(join(root, 'agent/system-prompt.md'), 'utf8');
 
 const agentBody = (toolIds) => ({
-  name: 'Maya - Oriki Homes Speed-to-Lead',
+  name: 'Joy - Oriki Homes Speed-to-Lead',
   conversation_config: {
     agent: {
-      // Works both when we call them and when they call Maya from the WhatsApp button.
-      first_message: 'Hello, this is Maya, an AI assistant with Oriki Homes. Thank you for reaching out! Do you have two minutes for a few quick questions?',
+      // Works both when we call them and when they call Joy from the WhatsApp button.
+      first_message: 'Hello, this is Joy, an AI assistant with Oriki Homes. Thank you for reaching out! Do you have two minutes for a few quick questions?',
       language: 'en',
       prompt: {
         prompt,
@@ -139,7 +139,7 @@ const agentBody = (toolIds) => ({
         },
       },
     },
-    tts: { voice_id: env('VOICE_ID', 'cjVigY5qzO86Huf0OWal'), model_id: 'eleven_flash_v2' },
+    tts: { voice_id: env('VOICE_ID', 'QqgW7xZ3mjIAgZVFMwJz'), model_id: 'eleven_flash_v2' }, // Ngozi: calm, female, Nigerian accent
     conversation: { max_duration_seconds: 300 },
   },
   platform_settings: {

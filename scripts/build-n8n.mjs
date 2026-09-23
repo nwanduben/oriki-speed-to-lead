@@ -65,7 +65,7 @@ const link = (...names) => ({ main: [names.map((n) => ({ node: n, type: 'main', 
 const link2 = (a, b) => ({ main: [a ? [{ node: a, type: 'main', index: 0 }] : [], b ? [{ node: b, type: 'main', index: 0 }] : []] });
 
 // Shared snippets -----------------------------------------------------------
-// Tool calls carry lead_id when we placed the call. When the person called Maya
+// Tool calls carry lead_id when we placed the call. When the person called Joy
 // themselves (WhatsApp button), lead_id is the placeholder and we match on caller id.
 // A form lead's id comes as lead_ref (from "ref L…" in the first WhatsApp message) or lead_id (older payloads).
 const REF = "String($json.body.lead_ref || $json.body.lead_id || '').trim()";
@@ -140,7 +140,7 @@ const consentWa = b.consent_whatsapp === true || b.consent_whatsapp === 'true' |
 const telephonyReady = Boolean(CFG.ELEVENLABS_AGENT_ID && CFG.ELEVENLABS_PHONE_NUMBER_ID);
 const channel = b.channel === 'whatsapp' ? 'whatsapp' : 'phone';
 let status = 'queued';
-// WhatsApp: the lead taps "Talk to Maya" and calls us, so we never dial them.
+// WhatsApp: the lead taps "Talk to Joy" and calls us, so we never dial them.
 if (channel === 'whatsapp') status = 'whatsapp_invited';
 else if (!phoneOk) status = 'invalid_phone';
 else if (!consentCall) status = 'no_consent';
@@ -152,7 +152,7 @@ return [{ json: {
   first_name: clean(b.first_name), last_name: clean(b.last_name), email: clean(b.email).toLowerCase(),
   phone: phoneOk ? digits : clean(b.phone), inquiry_type: clean(b.inquiry_type),
   area: clean(b.location), price_range: clean(b.budget), financing: clean(b.payment_plan),
-  // Everything the lead told us, so Maya can skip questions they already answered.
+  // Everything the lead told us, so Joy can skip questions they already answered.
   message: [b.location && 'Location: ' + clean(b.location), b.budget && 'Budget: ' + clean(b.budget),
     b.payment_plan && 'Payment: ' + clean(b.payment_plan), b.based_in && 'Based: ' + clean(b.based_in), clean(b.message)].filter(Boolean).join('. '),
   consent_call: consentCall, consent_whatsapp: consentWa,
@@ -163,7 +163,7 @@ return [{ json: {
   node('Save lead', 'n8n-nodes-base.dataTable', 1.1, [440, 300], { resource: 'row', operation: 'insert', dataTableId: TABLE, columns: autoMap }),
   respond('Reply to form', [660, 300], `={{ (() => { const l = $('Validate lead').item.json;
   const wa = ['whatsapp_invited', 'no_telephony'].includes(l.status)
-    ? 'https://wa.me/' + ${JSON.stringify(String(CFG.BUSINESS_WHATSAPP || '').replace(/\D/g, ''))} + '?text=' + encodeURIComponent('Hi Maya, I just sent an inquiry (ref ' + l.lead_id + ')')
+    ? 'https://wa.me/' + ${JSON.stringify(String(CFG.BUSINESS_WHATSAPP || '').replace(/\D/g, ''))} + '?text=' + encodeURIComponent('Hi Joy, I just sent an inquiry (ref ' + l.lead_id + ')')
     : null;
   return JSON.stringify({ ok: true, lead_id: l.lead_id, status: l.status, whatsapp_link: ${JSON.stringify(Boolean(CFG.BUSINESS_WHATSAPP))} ? wa : null }); })() }}`),
   node('Route', 'n8n-nodes-base.switch', 3.2, [880, 300], {
@@ -238,7 +238,7 @@ const a = $('score_lead called').first().json.body || {};
 const found = $input.first().json || {};
 const r = scoreLead(a);
 const now = new Date().toISOString();
-// Someone who called Maya directly without the form becomes a new lead keyed on their number.
+// Someone who called Joy directly without the form becomes a new lead keyed on their number.
 const walkIn = !found.lead_id;
 const callerDigits = String(a.caller_id || '').replace(/\\D/g, '');
 const callerPhone = callerDigits ? '+' + callerDigits : ''; // empty for browser conversations
@@ -322,7 +322,7 @@ const d = body.data || {};
 const dyn = ((d.conversation_initiation_client_data || {}).dynamic_variables) || {};
 const dc = ((d.analysis || {}).data_collection_results) || {};
 const val = (k) => (dc[k] && dc[k].value != null ? dc[k].value : null);
-const transcript = (d.transcript || []).map(t => (t.role === 'agent' ? 'Maya' : 'Lead') + ': ' + (t.message || '')).join('\\n');
+const transcript = (d.transcript || []).map(t => (t.role === 'agent' ? 'Joy' : 'Lead') + ': ' + (t.message || '')).join('\\n');
 return [{ json: {
   event_type: body.type, signature: verified,
   lead_id: ['none', 'test-lead'].includes(dyn.lead_id) ? '' : (dyn.lead_id || ''), conversation_id: d.conversation_id || '',

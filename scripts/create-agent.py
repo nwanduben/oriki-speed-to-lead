@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create (or update) the Maya agent in ElevenLabs.
+"""Create (or update) the Joy agent in ElevenLabs.
 
 Builds the payloads with `node scripts/setup-elevenlabs.mjs --dry-run` (single
 source of truth) and sends them with el_api, which copes with flaky local DNS.
