@@ -139,7 +139,7 @@ const agentBody = (toolIds) => ({
         },
       },
     },
-    tts: { voice_id: env('VOICE_ID', 'QqgW7xZ3mjIAgZVFMwJz'), model_id: 'eleven_flash_v2' }, // Ngozi: calm, female, Nigerian accent
+    tts: { voice_id: env('VOICE_ID', 'gM1otA87NrAmOwyCoJE6'), model_id: 'eleven_flash_v2' }, // Kehinde: natural, engaging (chosen by Benjamin)
     conversation: { max_duration_seconds: 300 },
   },
   platform_settings: {
