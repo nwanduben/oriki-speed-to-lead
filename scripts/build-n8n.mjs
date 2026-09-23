@@ -288,29 +288,30 @@ return [{ json: { lead_id: ev.lead_id, booked_slot: ev.start, status: 'booked', 
 
   // post-call
   webhook('ElevenLabs post-call', [0, 700], 're-elevenlabs-postcall', 'onReceived', { rawBody: true }),
-  code('Parse post-call', [220, 700], `
+  // n8n cloud blocks require('crypto') in Code nodes, so the HMAC is computed by the Crypto node.
+  code('Signature input', [220, 700], `
 const item = $input.first();
 const headers = item.json.headers || {};
-const body = item.json.body || {};
-// HMAC check (ElevenLabs header "elevenlabs-signature: t=<ts>,v0=<hex>").
-let verified = 'skipped';
+const parts = Object.fromEntries(String(headers['elevenlabs-signature'] || '').split(',').map((p) => p.split('=')));
+// Sign the exact raw body ElevenLabs sent (the webhook keeps it as binary "data").
+const raw = item.binary && item.binary.data
+  ? (await this.helpers.getBinaryDataBuffer(0, 'data')).toString('utf8')
+  : JSON.stringify(item.json.body || {});
+return [{ json: { t: parts.t || '', v0: parts.v0 || '', has_raw: Boolean(item.binary && item.binary.data), signed_payload: (parts.t || '') + '.' + raw } }];
+`),
+  node('Compute signature', 'n8n-nodes-base.crypto', 1, [440, 700], {
+    action: 'hmac', type: 'SHA256', value: '={{ $json.signed_payload }}', dataPropertyName: 'expected',
+    secret: CFG.ELEVENLABS_WEBHOOK_SECRET || 'not-configured', encoding: 'hex',
+  }),
+  code('Parse post-call', [660, 700], `
+const sig = $input.first().json;
+const body = $('ElevenLabs post-call').first().json.body || {};
+let verified = 'skipped (no secret configured)';
 if (CFG.ELEVENLABS_WEBHOOK_SECRET) {
-  try {
-    const crypto = require('crypto');
-    const hasRaw = Boolean(item.binary && item.binary.data);
-    const raw = hasRaw ? (await this.helpers.getBinaryDataBuffer(0, 'data')).toString('utf8') : JSON.stringify(body);
-    const parts = Object.fromEntries(String(headers['elevenlabs-signature'] || '').split(',').map(p => p.split('=')));
-    const expected = 'v0=' + crypto.createHmac('sha256', CFG.ELEVENLABS_WEBHOOK_SECRET).update(parts.t + '.' + raw).digest('hex');
-    if ('v0=' + parts.v0 !== expected) {
-      if (hasRaw) throw new Error('bad signature');
-      throw new Error('unverifiable: raw body not available'); // re-serialized JSON may differ; don't drop the call
-    }
-    if (Math.abs(Date.now() / 1000 - Number(parts.t)) > 1800) throw new Error('stale signature');
-    verified = 'ok';
-  } catch (e) {
-    if (e.message === 'bad signature' || e.message === 'stale signature') throw e;
-    verified = 'unavailable: ' + e.message; // e.g. crypto not allowed in this n8n
-  }
+  if (!sig.has_raw) throw new Error('Rejected: raw body unavailable, cannot verify signature');
+  if (!sig.v0 || sig.v0 !== sig.expected) throw new Error('Rejected: bad ElevenLabs signature');
+  if (Math.abs(Date.now() / 1000 - Number(sig.t)) > 1800) throw new Error('Rejected: stale ElevenLabs signature');
+  verified = 'ok';
 }
 const d = body.data || {};
 const dyn = ((d.conversation_initiation_client_data || {}).dynamic_variables) || {};
@@ -329,11 +330,11 @@ return [{ json: {
   opted_out: val('opted_out') === true || val('opted_out') === 'true',
 } }];
 `),
-  node('Get lead', 'n8n-nodes-base.dataTable', 1.1, [440, 700], {
+  node('Get lead', 'n8n-nodes-base.dataTable', 1.1, [880, 700], {
     resource: 'row', operation: 'get', dataTableId: TABLE,
     filters: { conditions: [{ keyName: "={{ $json.lead_id ? 'lead_id' : 'conversation_id' }}", condition: 'eq', keyValue: '={{ $json.lead_id || $json.conversation_id }}' }] },
   }, { alwaysOutputData: true }),
-  code('Decide outcome', [660, 700], `
+  code('Decide outcome', [1100, 700], `
 const e = $('Parse post-call').first().json;
 const lead = $input.first().json || {};
 if (!lead.lead_id) return []; // never scored (e.g. hung up immediately): nothing to update
@@ -359,8 +360,8 @@ if (e.event_type !== 'call_initiation_failure') Object.assign(row, {
 });
 return [{ json: row }];
 `),
-  upsert('Save outcome', [880, 700]),
-  node('Next step', 'n8n-nodes-base.switch', 3.2, [1100, 700], {
+  upsert('Save outcome', [1320, 700]),
+  node('Next step', 'n8n-nodes-base.switch', 3.2, [1540, 700], {
     rules: { values: [
       { outputKey: 'retry', renameOutput: true, conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose', version: 2 }, combinator: 'and',
         conditions: [{ id: 's1', leftValue: "={{ $('Decide outcome').item.json.outcome }}", rightValue: 'retry', operator: { type: 'string', operation: 'equals' } }] } },
@@ -415,7 +416,9 @@ const toolConnections = {
   'Create calendar event': link2('Mark booked', 'Return not booked'),
   'Mark booked': link('Save booking'),
   'Save booking': link('Return booked'),
-  'ElevenLabs post-call': link('Parse post-call'),
+  'ElevenLabs post-call': link('Signature input'),
+  'Signature input': link('Compute signature'),
+  'Compute signature': link('Parse post-call'),
   'Parse post-call': link('Get lead'),
   'Get lead': link('Decide outcome'),
   'Decide outcome': link('Save outcome'),
