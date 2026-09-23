@@ -54,6 +54,7 @@ flowchart LR
 | Path | What it is |
 |---|---|
 | `web/index.html` | Oriki Homes landing page and enquiry form (single file, no build) |
+| `web/img/` | AI-generated property images; see `docs/image-prompts.md` (no real homes are shown) |
 | `agent/system-prompt.md` | Maya's prompt |
 | `agent/scoring.js` + `scoring.test.js` | Lead scoring rubric and its tests |
 | `scripts/setup-elevenlabs.mjs` | Creates the ElevenLabs tools and agent via the API (`--dry-run` to preview) |

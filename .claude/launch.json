@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "landing", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "8765", "--directory", "web"], "port": 8765 }
+    { "name": "landing", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "8765", "--directory", "web"], "port": 8765 },
+    { "name": "oriki-web", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "8766", "--directory", "/Users/benjamin/PROJECTS/oriki-speed-to-lead/web"], "port": 8766 }
   ]
 }
