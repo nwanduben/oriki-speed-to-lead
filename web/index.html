@@ -191,8 +191,35 @@
   .foot p { margin: 0 0 6px; }
   .fine { margin-top: 36px; color: var(--faint); font-size: 12px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
+  /* ---------- voice panel ---------- */
+  .voice { border: 0; padding: 0; background: transparent; color: var(--ink); max-width: 440px; width: calc(100% - 32px); }
+  .voice::backdrop { background: rgba(10,10,10,.72); backdrop-filter: blur(6px); }
+  .vbox { background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 28px 24px 22px; text-align: center; }
+  .vbox h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 24px; }
+  .vbox .vsub { margin: 6px 0 0; color: var(--muted); font-size: 13.5px; }
+  .orb { width: 132px; height: 132px; margin: 26px auto 18px; border-radius: 50%; position: relative;
+    background: radial-gradient(circle at 35% 30%, #ffd2a8, var(--accent) 45%, #7a3410 100%); box-shadow: 0 0 60px rgba(224,119,47,.35); transition: transform .25s ease; }
+  .orb::after { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 1px solid rgba(224,119,47,.5); opacity: 0; }
+  .voice[data-state="listening"] .orb::after { animation: ring 1.8s ease-out infinite; }
+  .voice[data-state="speaking"] .orb { animation: talk .5s ease-in-out infinite alternate; }
+  .voice[data-state="connecting"] .orb { animation: breathe 1.4s ease-in-out infinite; opacity: .8; }
+  .voice[data-state="idle"] .orb, .voice[data-state="ended"] .orb { filter: grayscale(.6); opacity: .6; }
+  @keyframes talk { from { transform: scale(1); } to { transform: scale(1.09); } }
+  @keyframes breathe { 50% { transform: scale(.94); } }
+  .vstatus { font-size: 14px; font-weight: 500; min-height: 22px; }
+  .vlog { margin: 16px 0 18px; max-height: 190px; overflow-y: auto; display: grid; gap: 8px; text-align: left; }
+  .vlog:empty { display: none; }
+  .vlog p { margin: 0; padding: 9px 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.45; background: var(--panel-2); max-width: 90%; }
+  .vlog p.u { justify-self: end; background: #0d5a33; }
+  .vactions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+  .btn.end { background: #c2412d; color: #fff; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .vnote { margin: 14px 0 0; color: var(--faint); font-size: 11.5px; }
+  .voice-cta { margin-top: 22px; }
+  @media (prefers-reduced-motion: reduce) { .voice .orb, .voice .orb::after { animation: none !important; } }
+
   /* ---------- chat bubble ---------- */
-  .chat { position: fixed; right: 20px; bottom: 20px; z-index: 30; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .chat { position: fixed; right: 20px; bottom: 20px; z-index: 30; display: flex; align-items: center; gap: 10px; text-decoration: none; border: 0; padding: 0; background: none; font: inherit; cursor: pointer; text-align: left; }
   .chat .say { background: #fff; color: #1e1e1e; border-radius: 12px; padding: 9px 13px; font-size: 13px; line-height: 1.3; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
   .chat .say small { display: block; color: #6b6964; font-size: 11.5px; }
   .chat .dot { width: 50px; height: 50px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
@@ -271,9 +298,9 @@
             <div class="price" id="fPrice">From ₦18,000,000</div>
           </div>
         </a>
-        <button class="fcard maya" type="button" data-goto="maya">
+        <button class="fcard maya" type="button" data-voice>
           <span class="mic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2Z"/></svg></span>
-          <span>Talk to Maya</span><small>Replies in under a minute</small>
+          <span>Talk to Maya</span><small>Live voice, right here</small>
         </button>
         <div class="fcard photo">
           <img src="img/life-rooftop.jpg" alt="Rooftop pool at sunset" onerror="this.onerror=null;this.src=&quot;data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27800%27%20height%3D%27500%27%3E%3Cdefs%3E%3Cpattern%20id%3D%27p%27%20width%3D%2724%27%20height%3D%2724%27%20patternUnits%3D%27userSpaceOnUse%27%20patternTransform%3D%27rotate%2845%29%27%3E%3Crect%20width%3D%2712%27%20height%3D%2724%27%20fill%3D%27%233a342d%27/%3E%3C/pattern%3E%3C/defs%3E%3Crect%20width%3D%27800%27%20height%3D%27500%27%20fill%3D%27%232e2a26%27/%3E%3Crect%20width%3D%27800%27%20height%3D%27500%27%20fill%3D%27url%28%23p%29%27/%3E%3Ctext%20x%3D%27400%27%20y%3D%27258%27%20fill%3D%27%23a3a09a%27%20font-family%3D%27sans-serif%27%20font-size%3D%2722%27%20text-anchor%3D%27middle%27%3EImage%20coming%20soon%3C/text%3E%3C/svg%3E&quot;">
@@ -358,6 +385,9 @@
         <div class="bubble u"><small>You</small>Land in Ibeju-Lekki. I'm in London, can I pay in instalments?</div>
         <div class="bubble m"><small>Maya</small>Yes. Oriki Gardens is 30% down, then 12 months. Shall I book a video inspection for Saturday, 10am Lagos time?</div>
       </div>
+      <button class="btn voice-cta" type="button" data-voice>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2Z"/></svg>
+        Talk to Maya now</button>
     </div>
 
     <div class="formcard" id="enquire" aria-live="polite">
@@ -428,6 +458,7 @@
         <a class="btn block wa" id="waBtn" href="#" target="_blank" rel="noopener" hidden>
           <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3Z"/></svg>
           Talk to Maya on WhatsApp</a>
+        <button class="btn block ghost" type="button" id="voiceAfter" style="margin-top:10px">Or talk to Maya here, by voice</button>
         <p class="ref" id="ref"></p>
       </div>
     </div>
@@ -478,10 +509,26 @@
   </div>
 </footer>
 
-<a class="chat" href="#maya" aria-label="Talk to Maya">
-  <span class="say">We're online!<small>Talk to Maya, it takes a minute</small></span>
+<button class="chat" type="button" data-voice aria-label="Talk to Maya now">
+  <span class="say">We're online!<small>Tap to talk to Maya now</small></span>
   <span class="dot" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H8l-4 4V5Z"/><path d="M8 9h8M8 12h5"/></svg></span>
-</a>
+</button>
+
+<dialog class="voice" id="voice" data-state="idle" aria-labelledby="vTitle">
+  <div class="vbox">
+    <h3 id="vTitle">Talk to Maya</h3>
+    <p class="vsub">Oriki Homes' AI assistant · live voice</p>
+    <div class="orb" aria-hidden="true"></div>
+    <div class="vstatus" id="vStatus" role="status">Ready when you are</div>
+    <div class="vlog" id="vLog" aria-live="polite"></div>
+    <div class="vactions">
+      <button class="btn" type="button" id="vStart">Start conversation</button>
+      <button class="btn end" type="button" id="vEnd" hidden>End call</button>
+      <button class="btn ghost" type="button" id="vClose">Close</button>
+    </div>
+    <p class="vnote">Uses your microphone. Maya is an AI; conversations are recorded to follow up on your enquiry.</p>
+  </div>
+</dialog>
 
 <script>
   const INTAKE_URL = 'https://qr4v3tgj.rcld.app/webhook/re-lead-intake'; // n8n intake webhook
@@ -558,7 +605,6 @@
     document.getElementById('enquire').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
     setTimeout(() => form.first_name && form.first_name.focus({ preventScroll: true }), reduced ? 0 : 600);
   }
-  document.querySelector('[data-goto="maya"]').addEventListener('click', goToForm);
   document.querySelectorAll('.ask').forEach((b) => b.addEventListener('click', () => {
     document.getElementById('inquiry_type').value = b.dataset.type;
     document.getElementById('location').value = b.dataset.loc;
@@ -609,9 +655,64 @@
       document.getElementById('pulse').hidden = true;
     }
     document.getElementById('ref').textContent = 'Reference: ' + r.lead_id;
+    window.oriki = { ref: r.lead_id, form: data };
     form.hidden = true;
     document.getElementById('done').hidden = false;
   }
+</script>
+
+<script type="module">
+  // Live voice with Maya in the browser (ElevenLabs Agents, public agent limited to allowed sites).
+  import { Conversation } from 'https://cdn.jsdelivr.net/npm/@elevenlabs/client@1.25.0/+esm';
+  const AGENT_ID = 'agent_2201m377px3xeh7v63f94qz9rf8v';
+  const dlg = document.getElementById('voice'), status = document.getElementById('vStatus'), log = document.getElementById('vLog');
+  const startBtn = document.getElementById('vStart'), endBtn = document.getElementById('vEnd');
+  let convo = null;
+
+  const setState = (state, text) => { dlg.dataset.state = state; status.textContent = text; };
+  const addLine = (who, text) => {
+    if (!text) return;
+    const p = document.createElement('p'); p.className = who === 'user' ? 'u' : 'm'; p.textContent = text;
+    log.appendChild(p); log.scrollTop = log.scrollHeight;
+  };
+
+  async function start() {
+    startBtn.hidden = true; log.textContent = '';
+    setState('connecting', 'Allow your microphone to start…');
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      setState('connecting', 'Connecting to Maya…');
+      convo = await Conversation.startSession({
+        agentId: AGENT_ID,
+        connectionType: 'webrtc',
+        onConnect: () => { endBtn.hidden = false; setState('listening', 'Connected. Maya will greet you.'); },
+        onDisconnect: () => { convo = null; endBtn.hidden = true; startBtn.hidden = false; startBtn.textContent = 'Talk again'; setState('ended', 'Call ended. Thank you!'); },
+        onModeChange: ({ mode }) => { if (convo) setState(mode === 'speaking' ? 'speaking' : 'listening', mode === 'speaking' ? 'Maya is speaking…' : 'Listening…'); },
+        onMessage: ({ source, message }) => addLine(source, message),
+        onError: (e) => setState('ended', 'Something went wrong: ' + (e && e.message ? e.message : e)),
+      });
+      // If they just sent the form, give Maya the reference and what they told us.
+      const o = window.oriki;
+      if (o && o.ref && typeof convo.sendContextualUpdate === 'function') {
+        const f = o.form || {};
+        convo.sendContextualUpdate(`The visitor just submitted website enquiry ref ${o.ref} (pass it as lead_ref). `
+          + `Name: ${f.first_name || ''}. Interested in: ${f.inquiry_type || ''}. Location: ${f.location || ''}. Budget: ${f.budget || ''}. `
+          + `Payment: ${f.payment_plan || ''}. Based: ${f.based_in || ''}. Don't re-ask what's already known.`);
+      }
+    } catch (e) {
+      startBtn.hidden = false;
+      setState('idle', e && e.name === 'NotAllowedError' ? 'Microphone access is needed to talk to Maya.' : 'Could not connect: ' + (e && e.message ? e.message : e));
+    }
+  }
+  async function stop() { if (convo) await convo.endSession(); }
+
+  function open() { if (!dlg.open) dlg.showModal(); if (!convo) start(); }
+  document.querySelectorAll('[data-voice]').forEach((b) => b.addEventListener('click', open));
+  document.getElementById('voiceAfter').addEventListener('click', open);
+  startBtn.addEventListener('click', start);
+  endBtn.addEventListener('click', stop);
+  document.getElementById('vClose').addEventListener('click', async () => { await stop(); dlg.close(); });
+  dlg.addEventListener('cancel', () => { stop(); });
 </script>
 </body>
 </html>

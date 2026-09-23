@@ -140,8 +140,13 @@ const agentBody = (toolIds) => ({
       },
     },
     tts: { voice_id: env('VOICE_ID', 'cjVigY5qzO86Huf0OWal'), model_id: 'eleven_flash_v2' },
+    conversation: { max_duration_seconds: 300 },
   },
   platform_settings: {
+    // Public agent (the website voice panel starts sessions with the agent id), so cap abuse:
+    // only listed sites may connect, and calls are limited in number and length.
+    auth: { enable_auth: false, allowlist: env('ALLOWED_HOSTS', 'localhost').split(',').map((hostname) => ({ hostname: hostname.trim() })) },
+    call_limits: { agent_concurrency_limit: 2, daily_limit: 40, bursting_enabled: false },
     data_collection: {
       intent: { type: 'string', description: 'buy, invest, sell, both, rent, or unknown' },
       timeline: { type: 'string', description: 'under_30_days, 1_3_months, 3_6_months, 6_plus_months, or unknown' },

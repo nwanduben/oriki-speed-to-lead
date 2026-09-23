@@ -74,7 +74,7 @@ const leadLookup = (name, pos) => node(name, 'n8n-nodes-base.dataTable', 1.1, po
   resource: 'row', operation: 'get', dataTableId: TABLE, limit: 1,
   filters: { conditions: [{
     keyName: `={{ ${NO_LEAD} ? 'phone' : 'lead_id' }}`, condition: 'eq',
-    keyValue: `={{ ${NO_LEAD} ? '+' + String($json.body.caller_id || '').replace(/\\D/g, '') : ${REF} }}`,
+    keyValue: `={{ ${NO_LEAD} ? (String($json.body.caller_id || '').replace(/\\D/g, '') ? '+' + String($json.body.caller_id).replace(/\\D/g, '') : '__no_caller__') : ${REF} }}`,
   }] },
 }, { alwaysOutputData: true });
 const buildCallPayload = `
@@ -240,7 +240,8 @@ const r = scoreLead(a);
 const now = new Date().toISOString();
 // Someone who called Maya directly without the form becomes a new lead keyed on their number.
 const walkIn = !found.lead_id;
-const callerPhone = '+' + String(a.caller_id || '').replace(/\\D/g, '');
+const callerDigits = String(a.caller_id || '').replace(/\\D/g, '');
+const callerPhone = callerDigits ? '+' + callerDigits : ''; // empty for browser conversations
 return [{ json: {
   ...(walkIn ? { received_at: now, phone: callerPhone, first_name: a.first_name || '', attempts: 0 } : {}),
   lead_id: found.lead_id || ('W' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)),
