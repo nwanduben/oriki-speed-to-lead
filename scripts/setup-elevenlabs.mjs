@@ -10,7 +10,8 @@
 //
 // Env:
 //   ELEVENLABS_API_KEY  required (unless --dry-run)
-//   TRANSFER_NUMBER     the human rep's phone, E.164 (e.g. +15551234567)
+//   TRANSFER_NUMBER     optional: the human rep's phone, E.164. Without it Maya has no live transfer
+//                       (she promises a callback and the team is alerted instead).
 //   N8N_BASE_URL        n8n instance root, no trailing slash
 //   VOICE_ID            optional ElevenLabs voice id
 //   TOOL_SECRET         optional shared secret sent to n8n as x-tool-secret
@@ -25,13 +26,13 @@ const API = 'https://api.elevenlabs.io/v1/convai';
 const env = (k, fallback) => process.env[k] ?? fallback;
 
 const n8n = env('N8N_BASE_URL', 'https://YOUR-N8N.example.com');
-const transferNumber = env('TRANSFER_NUMBER', '+10000000000');
+const transferNumber = env('TRANSFER_NUMBER', '');
 const toolHeaders = { 'x-tool-secret': env('TOOL_SECRET', 'change-me') };
 if (!dryRun) {
-  for (const k of ['ELEVENLABS_API_KEY', 'TRANSFER_NUMBER', 'N8N_BASE_URL']) {
+  for (const k of ['ELEVENLABS_API_KEY', 'N8N_BASE_URL']) {
     if (!process.env[k]) throw new Error(`Missing env ${k}`);
   }
-  if (!/^\+[1-9]\d{7,14}$/.test(transferNumber)) throw new Error('TRANSFER_NUMBER must be E.164');
+  if (transferNumber && !/^\+[1-9]\d{7,14}$/.test(transferNumber)) throw new Error('TRANSFER_NUMBER must be E.164');
 }
 
 // Values filled by ElevenLabs, not by the LLM.
@@ -118,7 +119,7 @@ const agentBody = (toolIds) => ({
         temperature: 0.3,
         tool_ids: toolIds,
         built_in_tools: {
-          transfer_to_number: {
+          ...(transferNumber ? { transfer_to_number: {
             name: 'transfer_to_number',
             params: {
               system_tool_type: 'transfer_to_number',
@@ -129,7 +130,7 @@ const agentBody = (toolIds) => ({
                 transfer_type: 'conference',
               }],
             },
-          },
+          } } : {}),
           end_call: { name: 'end_call', params: { system_tool_type: 'end_call' } },
           voicemail_detection: { name: 'voicemail_detection', params: { system_tool_type: 'voicemail_detection' } },
         },

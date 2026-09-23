@@ -4,7 +4,7 @@ An AI voice agent, **Maya**, answers every property enquiry in under a minute. S
 
 Built with **ElevenLabs Agents** (voice), **n8n** (workflows and data) and **WhatsApp** for a fictional Lagos/Abuja developer, Oriki Homes.
 
-> Status: prototype. The n8n workflows are live and tested with sample leads. The ElevenLabs agent and the WhatsApp line are not connected yet. See [docs/project-kickoff.md](docs/project-kickoff.md) for the brief, decisions and proof checks.
+> Status: prototype. The n8n workflows are live and tested with sample leads. Maya exists in ElevenLabs with her tools connected to n8n. The WhatsApp line and phone calling are not connected yet. See [docs/project-kickoff.md](docs/project-kickoff.md) for the brief, decisions and proof checks.
 
 ## Why
 
@@ -57,7 +57,8 @@ flowchart LR
 | `web/img/` | AI-generated property images; see `docs/image-prompts.md` (no real homes are shown) |
 | `agent/system-prompt.md` | Maya's prompt |
 | `agent/scoring.js` + `scoring.test.js` | Lead scoring rubric and its tests |
-| `scripts/setup-elevenlabs.mjs` | Creates the ElevenLabs tools and agent via the API (`--dry-run` to preview) |
+| `scripts/setup-elevenlabs.mjs` | Builds the ElevenLabs tool and agent payloads (`--dry-run` prints them) |
+| `scripts/create-agent.py` | Creates or updates Maya and her tools in ElevenLabs (ids in `agent/deployed.json`) |
 | `scripts/build-n8n.mjs` | Generates both n8n workflows from `n8n/config.json` into `n8n/build/` |
 | `scripts/deploy-n8n.py` | Creates or updates the workflows in n8n and activates them |
 | `n8n/config.example.json` | Config template (brand, ids, credentials, WhatsApp) |
@@ -72,7 +73,7 @@ cp n8n/config.example.json n8n/config.json   # fill in ids, credential ids, BUSI
 node agent/scoring.test.js                   # scoring tests
 node scripts/build-n8n.mjs                   # generate workflows into n8n/build/
 python3 scripts/deploy-n8n.py                # push + activate (needs N8N_API_KEY in .env)
-node scripts/setup-elevenlabs.mjs --dry-run  # preview the agent; drop --dry-run to create it
+python3 scripts/create-agent.py              # create/update Maya + tools (needs ELEVENLABS_API_KEY)
 ```
 
 Create a `.env` file (git-ignored) containing `N8N_API_KEY`, `ELEVENLABS_API_KEY` and `TRANSFER_NUMBER`. Add `BUSINESS_WHATSAPP`, `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN` once WhatsApp is set up.
