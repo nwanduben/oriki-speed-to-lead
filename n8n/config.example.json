@@ -15,12 +15,12 @@
   "MEETING_MINUTES": 30,
   "BOOKING_LINK": "https://cal.com/your-link",
   "WHATSAPP_PHONE_NUMBER_ID": "",
-  "REP_WHATSAPP": "+10000000000",
-  "WA_TEMPLATE_REP": "new_lead_alert",
   "WA_TEMPLATE_LEAD": "lead_followup",
   "DATA_TABLE_ID": "",
   "CRED_GOOGLE_CALENDAR": "",
   "CRED_ELEVENLABS": "",
   "CRED_WHATSAPP": "",
-  "BUSINESS_WHATSAPP": ""
+  "BUSINESS_WHATSAPP": "",
+  "TELEGRAM_CHAT_ID": "",
+  "CRED_TELEGRAM": ""
 }

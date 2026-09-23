@@ -54,6 +54,11 @@ const whatsappSend = (name, pos) => node(name, 'n8n-nodes-base.httpRequest', 4.2
   sendBody: true, specifyBody: 'json', jsonBody: '={{ JSON.stringify($json.wa_payload) }}',
   options: {},
 }, { ...cred('httpHeaderAuth', 'CRED_WHATSAPP', 'WhatsApp Cloud API (Bearer)'), onError: 'continueRegularOutput' });
+// Team alerts go to Telegram (free; the bot is the n8n "Telegram account" credential).
+const telegramSend = (name, pos) => node(name, 'n8n-nodes-base.telegram', 1.2, pos, {
+  chatId: CFG.TELEGRAM_CHAT_ID, text: '={{ $json.text }}',
+  additionalFields: { appendAttribution: false, parse_mode: 'HTML' },
+}, { ...cred('telegramApi', 'CRED_TELEGRAM', 'Telegram account'), onError: 'continueRegularOutput' });
 const link = (...names) => ({ main: [names.map((n) => ({ node: n, type: 'main', index: 0 }))] });
 const link2 = (a, b) => ({ main: [a ? [{ node: a, type: 'main', index: 0 }] : [], b ? [{ node: b, type: 'main', index: 0 }] : []] });
 
@@ -83,7 +88,22 @@ function buildCallPayload(lead) {
 }
 `;
 const buildWhatsApp = `
-// Rep alert always; lead message only if they opted in to WhatsApp on the form.
+// Team alert goes to Telegram; the lead gets a WhatsApp only if they opted in on the form.
+function alertItems(lead, reason, summary) {
+  if (!CFG.TELEGRAM_CHAT_ID) return [];
+  const esc = (t) => String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const lines = [
+    '<b>🔔 Oriki Homes lead alert</b>',
+    esc(reason),
+    '',
+    '<b>' + esc((lead.first_name || '') + ' ' + (lead.last_name || '')) + '</b> · ' + esc(lead.tier || 'unscored') + (lead.score != null && lead.score !== '' ? ' (' + lead.score + ')' : ''),
+    '📞 ' + esc(lead.phone) + (lead.phone ? '  ·  <a href="https://wa.me/' + String(lead.phone).replace(/\\D/g, '') + '">WhatsApp</a>' : ''),
+    lead.area || lead.price_range ? '📍 ' + esc(lead.area) + (lead.price_range ? ' · ' + esc(lead.price_range) : '') : '',
+    summary || lead.message ? '📝 ' + esc(summary || lead.message).slice(0, 700) : '',
+    'Ref ' + esc(lead.lead_id),
+  ];
+  return [{ json: { text: lines.filter((l) => l !== '').join('\\n') } }];
+}
 function waTemplate(to, name, params) {
   return { messaging_product: 'whatsapp', to: to.replace('+', ''), type: 'template',
     template: { name, language: { code: 'en_US' },
@@ -91,9 +111,7 @@ function waTemplate(to, name, params) {
 }
 function whatsappItems(lead, reason, summary) {
   if (!CFG.WHATSAPP_PHONE_NUMBER_ID) return []; // WhatsApp not configured yet: the fallback status is still saved
-  const items = [{ json: { wa_payload: waTemplate(CFG.REP_WHATSAPP, CFG.WA_TEMPLATE_REP, [
-    (lead.first_name || '') + ' ' + (lead.last_name || ''), lead.tier || 'unscored', reason, lead.phone, summary || lead.message || '',
-  ]) } }];
+  const items = [];
   if (lead.consent_whatsapp === true || lead.consent_whatsapp === 'true') {
     items.push({ json: { wa_payload: waTemplate(lead.phone, CFG.WA_TEMPLATE_LEAD, [lead.first_name || 'there', CFG.AGENT_NAME, CFG.BOOKING_LINK]) } });
   }
@@ -182,6 +200,11 @@ const lead = $('Validate lead').first().json;
 return whatsappItems(lead, $('Fallback: why').first().json.fallback_reason, lead.message);
 `),
   whatsappSend('Send WhatsApp', [2200, 380]),
+  code('Build alert', [1980, 540], buildWhatsApp + `
+const lead = $('Validate lead').first().json;
+return alertItems(lead, $('Fallback: why').first().json.fallback_reason, lead.message);
+`),
+  telegramSend('Telegram alert', [2200, 540]),
 ];
 const intakeConnections = {
   'Form submitted': link('Validate lead'),
@@ -193,8 +216,9 @@ const intakeConnections = {
   'Call lead (ElevenLabs)': link2('Mark calling', 'Fallback: why'),
   'Mark calling': link('Save call started'),
   'Fallback: why': link('Save fallback'),
-  'Save fallback': link('Build WhatsApp'),
+  'Save fallback': link('Build WhatsApp', 'Build alert'),
   'Build WhatsApp': link('Send WhatsApp'),
+  'Build alert': link('Telegram alert'),
 };
 
 // Workflow 2: agent tools + post-call ----------------------------------------
@@ -273,10 +297,14 @@ let verified = 'skipped';
 if (CFG.ELEVENLABS_WEBHOOK_SECRET) {
   try {
     const crypto = require('crypto');
-    const raw = item.binary && item.binary.data ? (await this.helpers.getBinaryDataBuffer(0, 'data')).toString('utf8') : JSON.stringify(body);
+    const hasRaw = Boolean(item.binary && item.binary.data);
+    const raw = hasRaw ? (await this.helpers.getBinaryDataBuffer(0, 'data')).toString('utf8') : JSON.stringify(body);
     const parts = Object.fromEntries(String(headers['elevenlabs-signature'] || '').split(',').map(p => p.split('=')));
     const expected = 'v0=' + crypto.createHmac('sha256', CFG.ELEVENLABS_WEBHOOK_SECRET).update(parts.t + '.' + raw).digest('hex');
-    if ('v0=' + parts.v0 !== expected) throw new Error('bad signature');
+    if ('v0=' + parts.v0 !== expected) {
+      if (hasRaw) throw new Error('bad signature');
+      throw new Error('unverifiable: raw body not available'); // re-serialized JSON may differ; don't drop the call
+    }
     if (Math.abs(Date.now() / 1000 - Number(parts.t)) > 1800) throw new Error('stale signature');
     verified = 'ok';
   } catch (e) {
@@ -362,6 +390,17 @@ const reason = o === 'transfer_missed' ? 'HOT lead - live transfer to you did no
 return whatsappItems(lead, reason, e.summary);
 `),
   whatsappSend('Send WhatsApp', [1540, 820]),
+  code('Build alert', [1320, 980], buildWhatsApp + `
+const lead = Object.assign({}, $('Get lead').first().json);
+const e = $('Parse post-call').first().json;
+const o = $('Decide outcome').first().json.outcome;
+const reason = o === 'transfer_missed' ? '🔥 HOT lead: live transfer did not happen. Call them back now.'
+  : o === 'unreachable' ? 'Lead did not answer after ' + CFG.MAX_ATTEMPTS + ' attempts.'
+  : o === 'retry' ? 'Retry call could not be placed.'
+  : 'AI call failed: ' + (e.failure_reason || 'unknown');
+return alertItems(lead, reason, e.summary);
+`),
+  telegramSend('Telegram alert', [1540, 980]),
 ];
 const toolConnections = {
   'score_lead called': link('Score: authorized?'),
@@ -381,12 +420,13 @@ const toolConnections = {
   'Get lead': link('Decide outcome'),
   'Decide outcome': link('Save outcome'),
   'Save outcome': link('Next step'),
-  'Next step': link2('Wait before retry', 'Build WhatsApp'),
+  'Next step': { main: [[{ node: 'Wait before retry', type: 'main', index: 0 }], [{ node: 'Build WhatsApp', type: 'main', index: 0 }, { node: 'Build alert', type: 'main', index: 0 }]] },
   'Wait before retry': link('Prepare retry'),
   'Prepare retry': link('Call lead again'),
-  'Call lead again': link2('Mark retry', 'Build WhatsApp'),
+  'Call lead again': { main: [[{ node: 'Mark retry', type: 'main', index: 0 }], [{ node: 'Build WhatsApp', type: 'main', index: 0 }, { node: 'Build alert', type: 'main', index: 0 }]] },
   'Mark retry': link('Save retry'),
   'Build WhatsApp': link('Send WhatsApp'),
+  'Build alert': link('Telegram alert'),
 };
 
 const settings = { executionOrder: 'v1', timezone: CFG.TIMEZONE };
