@@ -94,22 +94,22 @@
   .chips { display: flex; gap: 8px; flex-wrap: wrap; }
   .chip { padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: #d8d5cf; font: 500 13px Inter, sans-serif; cursor: pointer; }
   .chip[aria-pressed="true"] { background: var(--ink); color: #1e1e1e; border-color: var(--ink); }
-  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
   .card { background: var(--panel); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
-  .card .img { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+  .card .img { position: relative; aspect-ratio: 3 / 4; overflow: hidden; } /* images are portrait, ~380x510 */
   .card .img img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
   .card:hover .img img { transform: scale(1.04); }
   .tags { position: absolute; left: 14px; top: 14px; display: flex; gap: 6px; flex-wrap: wrap; }
   .tag { font-size: 10.5px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 5px 9px; border-radius: 6px; background: rgba(20,20,20,.72); backdrop-filter: blur(4px); }
   .tag.hot { background: var(--accent); color: var(--accent-ink); }
-  .card .body { padding: 20px 22px 22px; display: grid; grid-template-columns: 1fr auto; gap: 6px 18px; align-items: end; }
-  .card h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1.15; letter-spacing: -.3px; }
-  .card .loc { margin: 0; color: var(--muted); font-size: 13.5px; grid-column: 1; }
-  .card .from { grid-row: 1 / span 2; grid-column: 2; text-align: right; color: var(--muted); font-size: 12px; }
-  .card .from b { display: block; color: var(--ink); font-family: var(--display); font-weight: 400; font-size: 24px; letter-spacing: -.3px; }
-  .card .meta { grid-column: 1 / -1; display: flex; gap: 18px; flex-wrap: wrap; margin-top: 10px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  .card .body { padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .card h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 23px; line-height: 1.15; letter-spacing: -.3px; }
+  .card .loc { margin: 0; color: var(--muted); font-size: 13.5px; }
+  .card .from { margin-top: 10px; color: var(--muted); font-size: 12px; }
+  .card .from b { display: block; color: var(--ink); font-family: var(--display); font-weight: 400; font-size: 22px; letter-spacing: -.3px; }
+  .card .meta { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
   .card .meta b { color: var(--ink); font-weight: 500; }
-  .card .ask { grid-column: 1 / -1; margin-top: 12px; justify-self: start; background: none; border: 0; padding: 0; color: var(--accent); font: 500 14px Inter, sans-serif; cursor: pointer; }
+  .card .ask { margin-top: auto; padding-top: 14px; align-self: flex-start; background: none; border: 0; padding: 0; color: var(--accent); font: 500 14px Inter, sans-serif; cursor: pointer; }
   .card .ask:hover { text-decoration: underline; }
   .note { color: var(--faint); font-size: 12.5px; margin-top: 14px; }
 
@@ -179,7 +179,7 @@
   /* ---------- insights ---------- */
   .posts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
   .post { border-radius: var(--radius); overflow: hidden; background: var(--panel); }
-  .post img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+  .post img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
   .post div { padding: 18px 20px 22px; }
   .post small { color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; }
   .post h3 { margin: 8px 0 0; font-weight: 500; font-size: 17px; line-height: 1.35; }
@@ -202,6 +202,7 @@
     .card .img img, .fade { transition: none; }
   }
   @media (max-width: 1080px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
     nav { display: none; } .online { margin-left: auto; }
     .float { width: min(520px, 62%); }
     .maya-sec, .titles { grid-template-columns: 1fr; gap: 36px; }
@@ -310,7 +311,7 @@
           <h3>Oriki Gardens</h3><p class="loc">Ibeju-Lekki, Lagos</p>
           <div class="from">From<b>₦18,000,000</b></div>
           <div class="meta"><span>Title <b>Registered survey &amp; deed</b></span><span>Plan <b>30% down, 12 months</b></span><span>Size <b>500 sqm</b></span></div>
-          <button class="ask" data-type="land" data-loc="Ibeju-Lekki">Ask Maya about Oriki Gardens →</button>
+          <button class="ask" data-type="land" data-loc="Ibeju-Lekki">Ask Maya about this estate →</button>
         </div>
       </article>
       <article class="card" data-status="building">
@@ -320,7 +321,7 @@
           <h3>Adire Court</h3><p class="loc">Sangotedo, Ajah, Lagos</p>
           <div class="from">From<b>₦95,000,000</b></div>
           <div class="meta"><span>Title <b>Governor's Consent</b></span><span>Plan <b>40% down, 18 months</b></span><span>Type <b>3-bed terrace</b></span></div>
-          <button class="ask" data-type="a home" data-loc="Sangotedo / Ajah">Ask Maya about Adire Court →</button>
+          <button class="ask" data-type="a home" data-loc="Sangotedo / Ajah">Ask Maya about this estate →</button>
         </div>
       </article>
       <article class="card" data-status="offplan">
@@ -330,7 +331,7 @@
           <h3>The Ayo Residences</h3><p class="loc">Lekki Phase 1, Lagos</p>
           <div class="from">From<b>₦260,000,000</b></div>
           <div class="meta"><span>Title <b>C of O</b></span><span>Plan <b>50% down, 12 months</b></span><span>Type <b>2 &amp; 3-bed</b></span></div>
-          <button class="ask" data-type="an off-plan home" data-loc="Lekki">Ask Maya about The Ayo Residences →</button>
+          <button class="ask" data-type="an off-plan home" data-loc="Lekki">Ask Maya about this estate →</button>
         </div>
       </article>
       <article class="card" data-status="selling">
@@ -340,11 +341,11 @@
           <h3>Zuma Heights</h3><p class="loc">Guzape, Abuja</p>
           <div class="from">From<b>₦320,000,000</b></div>
           <div class="meta"><span>Title <b>C of O</b></span><span>Plan <b>Outright or 12 months</b></span><span>Type <b>4-bed semi-detached</b></span></div>
-          <button class="ask" data-type="a home" data-loc="Abuja">Ask Maya about Zuma Heights →</button>
+          <button class="ask" data-type="a home" data-loc="Abuja">Ask Maya about this estate →</button>
         </div>
       </article>
     </div>
-    <p class="note">Demo company and listings. Prices, titles and payment plans are illustrative. Property images are AI-generated and don't show real homes.</p>
+    <p class="note">Demo company and listings. Prices, titles and payment plans are illustrative. All property images are AI-generated and don't show real homes.</p>
   </section>
 
   <section class="wrap maya-sec" id="maya">
