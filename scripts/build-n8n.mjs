@@ -30,7 +30,9 @@ const upsert = (name, pos, key = 'lead_id') => node(name, 'n8n-nodes-base.dataTa
 const webhook = (name, pos, path, responseMode, options = {}) => node(name, 'n8n-nodes-base.webhook', 2, pos,
   { httpMethod: 'POST', path, responseMode, options }, { webhookId: path.replace(/\W/g, '-') });
 const respond = (name, pos, body, code = 200) => node(name, 'n8n-nodes-base.respondToWebhook', 1.1, pos, {
-  respondWith: 'json', responseBody: body, options: { responseCode: code },
+  respondWith: 'json', responseBody: body,
+  // The website form reads this reply from another origin.
+  options: { responseCode: code, responseHeaders: { entries: [{ name: 'Access-Control-Allow-Origin', value: CFG.ALLOWED_ORIGINS || '*' }] } },
 });
 const ifNode = (name, pos, left, right, op = 'equals') => node(name, 'n8n-nodes-base.if', 2.2, pos, {
   conditions: {
