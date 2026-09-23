@@ -35,8 +35,11 @@ if (!dryRun) {
   if (transferNumber && !/^\+[1-9]\d{7,14}$/.test(transferNumber)) throw new Error('TRANSFER_NUMBER must be E.164');
 }
 
-// Values filled by ElevenLabs, not by the LLM.
-const leadId = { type: 'string', dynamic_variable: 'lead_id' };
+// No custom dynamic variables: inbound WhatsApp conversations don't supply them, and
+// ElevenLabs refuses to start if the first message or tools need one. Only system__ vars.
+// The lead is matched in n8n by lead_ref (the "ref L…" code in the first WhatsApp
+// message), else by caller number.
+const leadRef = { type: 'string', description: 'Enquiry reference if the person mentioned one, e.g. "Lmue5fi0ixy5st" from "ref Lmue5fi0ixy5st". Empty if none. Never ask for it.' };
 const conversationId = { type: 'string', dynamic_variable: 'system__conversation_id' };
 // The caller's number/WhatsApp id: how n8n finds the lead when the person called Maya themselves.
 const callerId = { type: 'string', dynamic_variable: 'system__caller_id' };
@@ -54,7 +57,7 @@ const scoreLeadTool = {
       request_body_schema: {
         type: 'object',
         properties: {
-          lead_id: leadId,
+          lead_ref: leadRef,
           conversation_id: conversationId,
           caller_id: callerId,
           first_name: { type: 'string', description: 'Their first name, if they told you' },
@@ -72,7 +75,7 @@ const scoreLeadTool = {
           opt_out: { type: 'boolean', description: 'True if the person asked not to be called again' },
           notes: { type: 'string', description: 'One or two sentences of useful context for the human agent' },
         },
-        required: ['lead_id', 'conversation_id', 'intent', 'timeline'],
+        required: ['conversation_id', 'intent', 'timeline'],
       },
     },
   },
@@ -91,14 +94,14 @@ const bookTool = {
       request_body_schema: {
         type: 'object',
         properties: {
-          lead_id: leadId,
+          lead_ref: leadRef,
           conversation_id: conversationId,
           caller_id: callerId,
           preferred_start: { type: 'string', description: 'Requested start as ISO 8601 with Lagos offset, e.g. 2026-09-26T10:00:00+01:00' },
           meeting_type: { type: 'string', enum: ['site_inspection', 'virtual_inspection', 'consultation'], description: 'site_inspection = in person at the estate; virtual_inspection = video call walk-through (diaspora); consultation = call with an agent' },
           email: { type: 'string', description: 'Email to send the invite to, if the lead gave a different one' },
         },
-        required: ['lead_id', 'conversation_id', 'preferred_start', 'meeting_type'],
+        required: ['conversation_id', 'preferred_start', 'meeting_type'],
       },
     },
   },
@@ -111,7 +114,7 @@ const agentBody = (toolIds) => ({
   conversation_config: {
     agent: {
       // Works both when we call them and when they call Maya from the WhatsApp button.
-      first_message: 'Hello, this is Maya, an AI assistant with {{brokerage_name}}. Thank you for reaching out about {{inquiry_type}}! Do you have two minutes for a few quick questions?',
+      first_message: 'Hello, this is Maya, an AI assistant with Oriki Homes. Thank you for reaching out! Do you have two minutes for a few quick questions?',
       language: 'en',
       prompt: {
         prompt,
@@ -133,12 +136,6 @@ const agentBody = (toolIds) => ({
           } } : {}),
           end_call: { name: 'end_call', params: { system_tool_type: 'end_call' } },
           voicemail_detection: { name: 'voicemail_detection', params: { system_tool_type: 'voicemail_detection' } },
-        },
-      },
-      dynamic_variables: {
-        dynamic_variable_placeholders: {
-          first_name: 'there', brokerage_name: 'Oriki Homes', service_area: 'Lagos (the Lekki-Epe corridor) and Abuja',
-          inquiry_type: 'land or a home', inquiry_message: '', agent_name: 'Benjamin', lead_id: 'none',
         },
       },
     },

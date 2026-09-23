@@ -65,12 +65,14 @@ const link2 = (a, b) => ({ main: [a ? [{ node: a, type: 'main', index: 0 }] : []
 // Shared snippets -----------------------------------------------------------
 // Tool calls carry lead_id when we placed the call. When the person called Maya
 // themselves (WhatsApp button), lead_id is the placeholder and we match on caller id.
-const NO_LEAD = "['', 'none', 'test-lead'].includes(String($json.body.lead_id || ''))";
+// A form lead's id comes as lead_ref (from "ref L…" in the first WhatsApp message) or lead_id (older payloads).
+const REF = "String($json.body.lead_ref || $json.body.lead_id || '').trim()";
+const NO_LEAD = "!/^[LW][a-z0-9]{6,}$/i.test(" + REF + ")";
 const leadLookup = (name, pos) => node(name, 'n8n-nodes-base.dataTable', 1.1, pos, {
   resource: 'row', operation: 'get', dataTableId: TABLE, limit: 1,
   filters: { conditions: [{
     keyName: `={{ ${NO_LEAD} ? 'phone' : 'lead_id' }}`, condition: 'eq',
-    keyValue: `={{ ${NO_LEAD} ? '+' + String($json.body.caller_id || '').replace(/\\D/g, '') : $json.body.lead_id }}`,
+    keyValue: `={{ ${NO_LEAD} ? '+' + String($json.body.caller_id || '').replace(/\\D/g, '') : ${REF} }}`,
   }] },
 }, { alwaysOutputData: true });
 const buildCallPayload = `
