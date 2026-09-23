@@ -1,0 +1,8 @@
+# Secrets: never commit
+.env
+n8n/config.json
+# Build output embeds secrets from n8n/config.json
+n8n/build/
+
+__pycache__/
+.DS_Store
