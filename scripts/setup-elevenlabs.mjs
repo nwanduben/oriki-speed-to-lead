@@ -145,7 +145,7 @@ const agentBody = (toolIds) => ({
   platform_settings: {
     // Public agent (the website voice panel starts sessions with the agent id), so cap abuse:
     // only listed sites may connect, and calls are limited in number and length.
-    auth: { enable_auth: false, allowlist: env('ALLOWED_HOSTS', 'localhost').split(',').map((hostname) => ({ hostname: hostname.trim() })) },
+    auth: { enable_auth: false, allowlist: env('ALLOWED_HOSTS', 'localhost,oriki-homes.onrender.com').split(',').map((hostname) => ({ hostname: hostname.trim() })) },
     call_limits: { agent_concurrency_limit: 2, daily_limit: 40, bursting_enabled: false },
     data_collection: {
       intent: { type: 'string', description: 'buy, invest, sell, both, rent, or unknown' },

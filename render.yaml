@@ -1,16 +1,21 @@
-# Render blueprint for the Oriki Homes demo site.
-#
-# The site is the single static page in web/ (no build step, no secrets: the
-# intake webhook URL and Joy's public agent id are public by design, and Joy is
-# protected by her site allowlist and her conversation caps).
-#
-# After the first deploy, add the Render URL to Joy's allowlist or "Talk to Joy"
-# is refused on the live site:
-#   ALLOWED_HOSTS=localhost,<your-render-host> python3 scripts/create-agent.py
+# Render Blueprint: the Oriki Homes demo page as a free static site.
+# Render dashboard → New → Blueprint → pick this repo. No build step; web/ is served as-is.
 services:
   - type: web
     name: oriki-homes
     runtime: static
-    buildCommand: "echo 'static site: nothing to build'"
+    buildCommand: echo "static site, no build"
     staticPublishPath: ./web
-    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: microphone=(self), camera=(), geolocation=()
+      - path: /img/*
+        name: Cache-Control
+        value: public, max-age=604800

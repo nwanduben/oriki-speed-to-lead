@@ -84,6 +84,8 @@ In ElevenLabs:
 - Point the workspace post-call webhook at `<n8n>/webhook/re-elevenlabs-postcall`.
 - Import the WhatsApp number (Agents → WhatsApp → Import Account) and assign Joy to it.
 
+To host the landing page on Render (free static site): in the Render dashboard, choose **New → Blueprint** and pick this repo. `render.yaml` serves `web/` with no build step. The site gets `https://oriki-homes.onrender.com`, which is already on Joy's allowlist. If Render gives a different name, add it with `ALLOWED_HOSTS=localhost,<host> python3 scripts/create-agent.py`.
+
 To preview the landing page locally:
 
 ```bash
